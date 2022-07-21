@@ -24,7 +24,7 @@ MY_FLAGS += $(shell cat .my_flags 2>/dev/null)
 
 ###### complier set-up ######
 CC = gcc
-CFLAGS = $(MY_FLAGS) -Wextra
+CFLAGS = $(MY_FLAGS) -Wextra -Wno-unused-result
 CXX = g++
 CXXFLAGS = $(CFLAGS) -std=c++17
 LD = g++
