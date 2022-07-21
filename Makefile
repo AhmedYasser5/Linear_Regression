@@ -26,20 +26,24 @@ MY_FLAGS += $(shell cat .my_flags 2>/dev/null)
 CC = gcc
 CFLAGS = $(MY_FLAGS) -Wextra
 CXX = g++
-CXXFLAGS = $(CFLAGS)
+CXXFLAGS = $(CFLAGS) -std=c++17
 LD = g++
 LDFLAGS = $(CXXFLAGS)
 DEBUGGER = gdb
 
 ifeq ($(RELEASE), 1)
 	maketype := RELEASE
-	CFLAGS += -O3
-	CXXFLAGS += -std=c++17
-	LDFLAGS += -flto=full
+	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
+	# Link Time Optimization
+	CFLAGS += -flto
+	LDFLAGS += -flto
 else
 	maketype := DEBUG
-	CFLAGS += -O0 -g -DDEBUG=1
-	CXXFLAGS += -std=c++17
+	CFLAGS += -Og -ggdb2 -DDEBUG=1
+	# Overflow protection
+	CFLAGS += -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fstack-clash-protection -fcf-protection
+	CFLAGS += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
+	CXXFLAGS += -D_GLIBCXX_ASSERTIONS
 endif
 
 CFLAGS += -MMD -MP -I$(SRCDIR) $(foreach i,$(MY_PATHS),-I$(i))
