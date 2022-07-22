@@ -36,7 +36,6 @@ ifeq ($(RELEASE), 1)
 	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
 	# Link Time Optimization
 	CFLAGS += -flto
-	LDFLAGS += -flto
 else
 	maketype := DEBUG
 	CFLAGS += -Og -ggdb2 -DDEBUG=1
