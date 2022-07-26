@@ -7,7 +7,7 @@ OBJDIR := ./build/obj
 DEPDIR := ./build/deps
 BINDIR := .
 
-TARGET := $(BINDIR)/$(subst $(space),_,$(shell basename "${PWD}"))_
+TARGET := $(BINDIR)/$(notdir $(subst $(space),_,$(realpath .)))_
 ifeq ($(RELEASE), 1)
 	TARGET := $(TARGET)Release
 else
@@ -19,8 +19,8 @@ MY_PATHS := $(BINDIR) $(INCDIR)
 MY_FLAGS := 
 
 ###### extra variables #######
-MY_PATHS += $(shell cat .my_paths 2>/dev/null)
-MY_FLAGS += $(shell cat .my_flags 2>/dev/null)
+MY_PATHS += $(file <.my_paths)
+MY_FLAGS += $(file <.my_flags)
 
 ###### complier set-up ######
 CC = gcc
@@ -33,7 +33,7 @@ DEBUGGER = gdb
 
 ifeq ($(RELEASE), 1)
 	maketype := RELEASE
-	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
+	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer
 	# Link Time Optimization
 	CFLAGS += -flto
 else
@@ -47,9 +47,7 @@ endif
 
 CFLAGS += -MMD -MP -I$(SRCDIR) $(foreach i,$(MY_PATHS),-I$(i))
 
-SRCS := $(wildcard $(SRCDIR)/**/*.cpp)
-SRCS += $(wildcard $(SRCDIR)/*.cpp)
-SRCS += $(wildcard $(SRCDIR)/**/*.c)
+SRCS := $(wildcard $(SRCDIR)/*.cpp)
 SRCS += $(wildcard $(SRCDIR)/*.c)
 
 DEPS := $(patsubst $(SRCDIR)/%,$(DEPDIR)/%.d,$(SRCS))
@@ -74,7 +72,10 @@ init :
 	@mkdir -p $(SRCDIR) $(INCDIR) $(OBJDIR) $(DEPDIR)
 	-@for i in $(wildcard *.cpp) $(wildcard *.c) $(wildcard *.tpp); do mv ./$$i $(SRCDIR)/$$i; done
 	-@for i in $(wildcard *.h) $(wildcard *.hpp); do mv ./$$i $(INCDIR)/$$i; done
-	-@echo -e "$(foreach i,$(MY_PATHS),-I../$(i)\n-I$(i)\n)" >| src/.clang_complete
+	-@$(file >$(SRCDIR)/.clang_complete)\
+		$(foreach i,$(MY_PATHS),\
+			$(file >>$(SRCDIR)/.clang_complete,-I$(i))\
+			$(file >>$(SRCDIR)/.clang_complete,-I../$(i)))
 
 $(TARGET) : $(OBJS)
 	-@echo LD $(maketype) "$(<D)/*.o" "->" $@ && \
