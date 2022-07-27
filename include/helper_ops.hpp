@@ -9,7 +9,7 @@ using std::size_t;
 using std::thread;
 using std::vector;
 
-typedef double data;
+typedef long double data;
 
 // Run a function using multi-threading (finish - start) times
 // Similar to running a loop that calls the function multiple times, but with
@@ -21,10 +21,11 @@ template <typename Function, typename... Args>
 void runLoopConcurrently(size_t start, size_t finish, Function func,
                          Args... parameters);
 
-data dotProduct(const vector<data> &a, const vector<data> &b);
+data dotProduct(const vector<data> &a, const vector<data> &b,
+                const data scale = 1);
 void mul(vector<data> &a, data value);
 
-data add(const vector<data> &a);
+data sum(const vector<data> &a, const data scale = 1);
 void add(vector<data> &a, data value);
 
 } // namespace ML
