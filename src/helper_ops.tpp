@@ -24,7 +24,7 @@ void ML::runLoopConcurrently(size_t start, size_t finish, Function func,
   for (size_t i = 0, curFinish; i < num_threads; i++) {
     curFinish = curStart + portion;
     if (rem) {
-      curStart++;
+      curFinish++;
       rem--;
     }
     vec_t.emplace_back(runFunction<Function, Args...>, curStart, curFinish,
