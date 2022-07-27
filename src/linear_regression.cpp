@@ -4,7 +4,7 @@
 
 using namespace ML;
 
-LinearRegression::LinearRegression(const double &alpha) : alpha(alpha) {}
+LinearRegression::LinearRegression(const data &alpha) : alpha(alpha) {}
 
 static void initialize(const size_t &i, vector<vector<data>> &X,
                        const vector<vector<data>> &x, const size_t &features) {
@@ -15,9 +15,10 @@ static void initialize(const size_t &i, vector<vector<data>> &X,
 static void getStats(const size_t &i, vector<data> &avg,
                      vector<vector<data>> &X, vector<data> &std_dev,
                      const size_t &data_size) {
-  avg[i] = add(X[i]) / data_size;
+  avg[i] = sum(X[i], 1.0 / data_size);
   add(X[i], -avg[i]);
-  std_dev[i] = sqrt(dotProduct(X[i], X[i]) / data_size);
+
+  std_dev[i] = sqrt(dotProduct(X[i], X[i], 1.0 / data_size));
   mul(X[i], 1 / std_dev[i]);
 }
 
@@ -39,10 +40,11 @@ LinearRegression::transform(const vector<vector<data>> &x) {
 }
 
 vector<data> LinearRegression::normalize(const vector<data> &x) const {
-  vector<data> res(x);
-  size_t features = avg.size();
+  size_t features = x.size();
+  vector<data> res;
+  res.reserve(features);
   for (size_t i = 0; i < features; i++)
-    res[i] = (res[i] - avg[i]) / std_dev[i];
+    res.emplace_back((x[i] - avg[i]) / std_dev[i]);
   return res;
 }
 
@@ -81,13 +83,11 @@ static void precalculate(const size_t &i, const size_t &features,
                          const vector<vector<data>> &X, const vector<data> &y,
                          vector<data> &sumX, vector<data> &sumXY,
                          vector<vector<data>> &dotX, const data &multiplicand) {
-  sumX[i] = add(X[i]);
-  sumXY[i] = dotProduct(X[i], y);
+  sumX[i] = sum(X[i], multiplicand);
+  sumXY[i] = dotProduct(X[i], y, multiplicand);
 
   for (size_t j = i; j < features; j++)
-    dotX[i][j] = dotProduct(X[i], X[j]);
-
-  mul(dotX[i], multiplicand);
+    dotX[i][j] = dotProduct(X[i], X[j], multiplicand);
 }
 
 bool LinearRegression::train(const vector<vector<data>> &x,
@@ -101,13 +101,12 @@ bool LinearRegression::train(const vector<vector<data>> &x,
   runLoopConcurrently(0, features, precalculate, std::cref(features),
                       std::cref(X), std::cref(y), std::ref(sumX),
                       std::ref(sumXY), std::ref(dotX), alpha / data_size);
+
   for (size_t i = 0; i < features; i++)
     for (size_t j = 0; j < i; j++)
       dotX[i][j] = dotX[j][i];
 
-  mul(sumX, alpha / data_size);
-  mul(sumXY, alpha / data_size);
-  data sumY = add(y) * alpha / data_size;
+  data sumY = sum(y, alpha / data_size);
 
   return processData(dotX, sumX, sumY, sumXY);
 }
