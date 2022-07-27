@@ -1,19 +1,17 @@
 #include "linear_regression.hpp"
+#include <chrono>
 #include <fstream>
 #include <iostream>
-#include <thread>
-
 using namespace std;
-
 int main() {
 
-  ML::LinearRegression mod(0.001);
+  ML::LinearRegression mod(0.1);
 
   ifstream in("data.csv");
   int features = 6;
   // in >> features;
-  vector<vector<double>> x;
-  vector<double> y;
+  vector<vector<ML::data>> x;
+  vector<ML::data> y;
   while (true) {
     double tmp;
     in >> tmp;
@@ -21,18 +19,19 @@ int main() {
       break;
     y.emplace_back(tmp);
     x.emplace_back(features);
-    for (auto &cur : x.back())
-      in >> cur;
+    for (auto &it : x.back())
+      in >> it;
   }
 
-  // for (auto &it : x) {
-  //   for (auto &x : it)
-  //     cout << x << ' ';
-  //   cout << endl;
-  // }
-
-  cout << boolalpha << mod.train(x, y) << endl;
-  vector<double> test({1790, 2, 2, 2, 0, 0});
+  auto cur = chrono::steady_clock::now();
+  bool state = mod.train(x, y);
+  if (!state) {
+    cout << "Didn't converge..." << endl;
+    return 0;
+  }
+  chrono::duration<ML::data> dur = chrono::steady_clock::now() - cur;
+  cout << "Took " << dur.count() * 1e3 << " ms to train" << endl;
+  vector<ML::data> test({1500, 3, 2, 4, 0, 0});
   cout << mod.predict(test) << endl;
 
   return 0;
