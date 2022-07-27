@@ -8,14 +8,14 @@ namespace ML {
 using std::size_t;
 using std::vector;
 
-typedef double data;
+typedef long double data;
 
 class LinearRegression {
 private:
-  const double EPSILON = 1e-3;
+  const data EPSILON = 1e-6;
   vector<data> weights, avg, std_dev;
   data base;
-  double alpha;
+  data alpha;
 
   vector<vector<data>> transform(const vector<vector<data>> &x);
   vector<data> normalize(const vector<data> &x) const;
@@ -23,7 +23,7 @@ private:
                    const data &sumY, const vector<data> &sumXY);
 
 public:
-  LinearRegression(const double &alpha = 0.1);
+  LinearRegression(const data &alpha = 0.1);
   ~LinearRegression() = default;
   bool train(const vector<vector<data>> &x, const vector<data> &y);
   data predict(const vector<data> &x) const;
