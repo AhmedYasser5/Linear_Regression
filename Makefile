@@ -33,7 +33,7 @@ DEBUGGER = gdb
 
 ifeq ($(RELEASE), 1)
 	maketype := RELEASE
-	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer
+	CFLAGS += -O2 -ftree-vectorize -fomit-frame-pointer -march=native
 	# Link Time Optimization
 	CFLAGS += -flto
 else
