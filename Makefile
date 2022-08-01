@@ -74,8 +74,8 @@ init :
 	@mkdir -p $(SRCDIR) $(INCDIR) $(OBJDIR) $(DEPDIR)
 	-@for i in $(wildcard *.cpp) $(wildcard *.c) $(wildcard *.tpp); do mv ./$$i $(SRCDIR)/$$i; done
 	-@for i in $(wildcard *.h) $(wildcard *.hpp); do mv ./$$i $(INCDIR)/$$i; done
-	-@$(file >$(SRCDIR)/.clang_complete)\
-		$(foreach i,$(MY_PATHS),\
+	@touch $(SRCDIR)/.clang_complete
+	-@$(foreach i,$(MY_PATHS),\
 			$(file >>$(SRCDIR)/.clang_complete,-I$(i))\
 			$(file >>$(SRCDIR)/.clang_complete,-I../$(i)))
 
@@ -86,7 +86,7 @@ $(TARGET) : $(OBJS)
 $(OBJDIR)/%.cpp.$(maketype).o : $(SRCDIR)/%.cpp
 	@$(eval CUR_DEP := $(patsubst $(SRCDIR)/%,$(DEPDIR)/%.d,$<))
 	@mkdir -p $(@D) $(dir $(CUR_DEP))
-	@-@echo CXX $(maketype) $< "->" $@ && \
+	-@echo CXX $(maketype) $< "->" $@ && \
 		$(CXX) -c $< -o $@ -MF $(CUR_DEP) $(CXXFLAGS)
 
 $(OBJDIR)/%.c.$(maketype).o : $(SRCDIR)/%.c
