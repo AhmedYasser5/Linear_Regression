@@ -5,38 +5,32 @@
 
 using namespace MachineLearning;
 
+static const size_t maxIterationsPerThread = 1e7;
+
 LinearRegression::LinearRegression(const DataType &alpha) : alpha(alpha) {}
-
-static void initialize(const size_t &i, vector<vector<DataType>> &X,
-                       const vector<vector<DataType>> &x,
-                       const size_t &features) {
-  for (size_t j = 0; j < features; j++)
-    X[j][i] = x[i][j];
-}
-
-static void getStats(const size_t &i, vector<DataType> &avg,
-                     vector<vector<DataType>> &X, vector<DataType> &std_dev,
-                     const size_t &DataType_size) {
-  avg[i] = getSummation(X[i], 1.0 / DataType_size);
-  increaseByScalar(X[i], -avg[i]);
-
-  std_dev[i] = sqrt(dotProduct(X[i], X[i], 1.0 / DataType_size));
-  multiplyByScalar(X[i], 1 / std_dev[i]);
-}
 
 vector<vector<DataType>>
 LinearRegression::transform(const vector<vector<DataType>> &x) {
-  size_t features = x[0].size(), DataType_size = x.size();
-  vector<vector<DataType>> X(features, vector<DataType>(DataType_size));
+  size_t features = x[0].size(), dataSize = x.size();
+  vector<vector<DataType>> X(features, vector<DataType>(dataSize));
 
-  runLoopConcurrently(0, DataType_size, initialize, std::ref(X), std::cref(x),
-                      std::cref(features));
+  ConcurrentLoops driver(0, dataSize, maxIterationsPerThread);
+  driver.initiateLoopsWithoutReturns([&](size_t i) -> void {
+    for (size_t j = 0; j < features; j++)
+      X[j][i] = x[i][j];
+  });
 
   avg.resize(features);
   std_dev.resize(features);
 
-  runLoopConcurrently(0, features, getStats, std::ref(avg), std::ref(X),
-                      std::ref(std_dev), std::cref(DataType_size));
+  driver.finish = features;
+  driver.initiateLoopsWithoutReturns([&](size_t i) -> void {
+    avg[i] = getSummation(X[i], 1.0 / dataSize);
+    increaseByScalar(X[i], -avg[i]);
+
+    std_dev[i] = sqrt(dotProduct(X[i], X[i], 1.0 / dataSize));
+    multiplyByScalar(X[i], 1 / std_dev[i]);
+  });
 
   return X;
 }
@@ -82,36 +76,30 @@ bool LinearRegression::processData(const vector<vector<DataType>> &dotX,
   return true;
 }
 
-static void precalculate(const size_t &i, const size_t &features,
-                         const vector<vector<DataType>> &X,
-                         const vector<DataType> &y, vector<DataType> &sumX,
-                         vector<DataType> &sumXY,
-                         vector<vector<DataType>> &dotX,
-                         const DataType &multiplicand) {
-  sumX[i] = getSummation(X[i], multiplicand);
-  sumXY[i] = dotProduct(X[i], y, multiplicand);
-
-  for (size_t j = i; j < features; j++)
-    dotX[i][j] = dotProduct(X[i], X[j], multiplicand);
-}
-
 bool LinearRegression::train(const vector<vector<DataType>> &x,
                              const vector<DataType> &y) {
   auto X = transform(x);
-  size_t features = X.size(), DataType_size = y.size();
+  size_t features = X.size(), dataSize = y.size();
 
   vector<vector<DataType>> dotX(features, vector<DataType>(features));
   vector<DataType> sumX(features), sumXY(features);
 
-  runLoopConcurrently(0, features, precalculate, std::cref(features),
-                      std::cref(X), std::cref(y), std::ref(sumX),
-                      std::ref(sumXY), std::ref(dotX), alpha / DataType_size);
+  ConcurrentLoops driver(0, features, maxIterationsPerThread);
+  driver.initiateLoopsWithoutReturns([&](size_t i) {
+    DataType scale = alpha / dataSize;
+
+    sumX[i] = getSummation(X[i], scale);
+    sumXY[i] = dotProduct(X[i], y, scale);
+
+    for (size_t j = i; j < features; j++)
+      dotX[i][j] = dotProduct(X[i], X[j], scale);
+  });
 
   for (size_t i = 0; i < features; i++)
     for (size_t j = 0; j < i; j++)
       dotX[i][j] = dotX[j][i];
 
-  DataType sumY = getSummation(y, alpha / DataType_size);
+  DataType sumY = getSummation(y, alpha / dataSize);
 
   return processData(dotX, sumX, sumY, sumXY);
 }
