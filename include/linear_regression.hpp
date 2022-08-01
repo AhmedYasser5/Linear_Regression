@@ -3,30 +3,31 @@
 #include <cstddef>
 #include <vector>
 
-namespace ML {
+namespace MachineLearning {
 
 using std::size_t;
 using std::vector;
 
-typedef long double data;
+typedef long double DataType;
 
 class LinearRegression {
 private:
-  const data EPSILON = 1e-6;
-  vector<data> weights, avg, std_dev;
-  data base;
-  data alpha;
+  const DataType EPSILON = 1e-6;
+  vector<DataType> weights, avg, std_dev;
+  DataType base;
+  DataType alpha;
 
-  vector<vector<data>> transform(const vector<vector<data>> &x);
-  vector<data> normalize(const vector<data> &x) const;
-  bool processData(const vector<vector<data>> &dotX, const vector<data> &sumX,
-                   const data &sumY, const vector<data> &sumXY);
+  vector<vector<DataType>> transform(const vector<vector<DataType>> &x);
+  vector<DataType> normalize(const vector<DataType> &x) const;
+  bool processData(const vector<vector<DataType>> &dotX,
+                   const vector<DataType> &sumX, const DataType &sumY,
+                   const vector<DataType> &sumXY);
 
 public:
-  LinearRegression(const data &alpha = 0.1);
+  LinearRegression(const DataType &alpha = 0.1);
   ~LinearRegression() = default;
-  bool train(const vector<vector<data>> &x, const vector<data> &y);
-  data predict(const vector<data> &x) const;
+  bool train(const vector<vector<DataType>> &x, const vector<DataType> &y);
+  DataType predict(const vector<DataType> &x) const;
 };
 
-} // namespace ML
+} // namespace MachineLearning

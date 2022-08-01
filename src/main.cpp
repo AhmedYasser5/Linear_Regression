@@ -5,13 +5,12 @@
 using namespace std;
 int main() {
 
-  ML::LinearRegression mod(0.1);
+  MachineLearning::LinearRegression module(0.1);
 
   ifstream in("data.csv");
   int features = 6;
-  // in >> features;
-  vector<vector<ML::data>> x;
-  vector<ML::data> y;
+  vector<vector<MachineLearning::DataType>> x;
+  vector<MachineLearning::DataType> y;
   while (true) {
     double tmp;
     in >> tmp;
@@ -24,15 +23,16 @@ int main() {
   }
 
   auto cur = chrono::steady_clock::now();
-  bool state = mod.train(x, y);
+  bool state = module.train(x, y);
   if (!state) {
     cout << "Didn't converge..." << endl;
     return 0;
   }
-  chrono::duration<ML::data> dur = chrono::steady_clock::now() - cur;
+  chrono::duration<MachineLearning::DataType> dur =
+      chrono::steady_clock::now() - cur;
   cout << "Took " << dur.count() * 1e3 << " ms to train" << endl;
-  vector<ML::data> test({1500, 3, 2, 4, 0, 0});
-  cout << mod.predict(test) << endl;
+  vector<MachineLearning::DataType> test({1500, 3, 2, 4, 0, 0});
+  cout << module.predict(test) << endl;
 
   return 0;
 }

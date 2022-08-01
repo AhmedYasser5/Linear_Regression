@@ -1,62 +1,65 @@
 #include "linear_regression.hpp"
-#include "helper_ops.hpp"
+#include "helper_operations.hpp"
+#include "vector_operations.hpp"
 #include <cmath>
 
-using namespace ML;
+using namespace MachineLearning;
 
-LinearRegression::LinearRegression(const data &alpha) : alpha(alpha) {}
+LinearRegression::LinearRegression(const DataType &alpha) : alpha(alpha) {}
 
-static void initialize(const size_t &i, vector<vector<data>> &X,
-                       const vector<vector<data>> &x, const size_t &features) {
+static void initialize(const size_t &i, vector<vector<DataType>> &X,
+                       const vector<vector<DataType>> &x,
+                       const size_t &features) {
   for (size_t j = 0; j < features; j++)
     X[j][i] = x[i][j];
 }
 
-static void getStats(const size_t &i, vector<data> &avg,
-                     vector<vector<data>> &X, vector<data> &std_dev,
-                     const size_t &data_size) {
-  avg[i] = sum(X[i], 1.0 / data_size);
+static void getStats(const size_t &i, vector<DataType> &avg,
+                     vector<vector<DataType>> &X, vector<DataType> &std_dev,
+                     const size_t &DataType_size) {
+  avg[i] = sum(X[i], 1.0 / DataType_size);
   add(X[i], -avg[i]);
 
-  std_dev[i] = sqrt(dotProduct(X[i], X[i], 1.0 / data_size));
+  std_dev[i] = sqrt(dotProduct(X[i], X[i], 1.0 / DataType_size));
   mul(X[i], 1 / std_dev[i]);
 }
 
-vector<vector<data>>
-LinearRegression::transform(const vector<vector<data>> &x) {
-  size_t features = x[0].size(), data_size = x.size();
-  vector<vector<data>> X(features, vector<data>(data_size));
+vector<vector<DataType>>
+LinearRegression::transform(const vector<vector<DataType>> &x) {
+  size_t features = x[0].size(), DataType_size = x.size();
+  vector<vector<DataType>> X(features, vector<DataType>(DataType_size));
 
-  runLoopConcurrently(0, data_size, initialize, std::ref(X), std::cref(x),
+  runLoopConcurrently(0, DataType_size, initialize, std::ref(X), std::cref(x),
                       std::cref(features));
 
   avg.resize(features);
   std_dev.resize(features);
 
   runLoopConcurrently(0, features, getStats, std::ref(avg), std::ref(X),
-                      std::ref(std_dev), std::cref(data_size));
+                      std::ref(std_dev), std::cref(DataType_size));
 
   return X;
 }
 
-vector<data> LinearRegression::normalize(const vector<data> &x) const {
+vector<DataType> LinearRegression::normalize(const vector<DataType> &x) const {
   size_t features = x.size();
-  vector<data> res;
+  vector<DataType> res;
   res.reserve(features);
   for (size_t i = 0; i < features; i++)
     res.emplace_back((x[i] - avg[i]) / std_dev[i]);
   return res;
 }
 
-bool LinearRegression::processData(const vector<vector<data>> &dotX,
-                                   const vector<data> &sumX, const data &sumY,
-                                   const vector<data> &sumXY) {
+bool LinearRegression::processData(const vector<vector<DataType>> &dotX,
+                                   const vector<DataType> &sumX,
+                                   const DataType &sumY,
+                                   const vector<DataType> &sumXY) {
   size_t features = sumX.size();
   weights.resize(features);
   std::fill(weights.begin(), weights.end(), 0);
   base = 0;
 
-  vector<data> newWeights(features);
+  vector<DataType> newWeights(features);
   bool converged = false;
   while (!converged) {
     converged = true;
@@ -64,13 +67,13 @@ bool LinearRegression::processData(const vector<vector<data>> &dotX,
     for (size_t i = 0; i < features; i++) {
       newWeights[i] = weights[i] - (dotProduct(weights, dotX[i]) +
                                     base * sumX[i] - sumXY[i]);
-      if (fabs(weights[i] - newWeights[i]) > EPSILON)
+      if (fabsl(weights[i] - newWeights[i]) > EPSILON)
         converged = false;
     }
 
-    data newBase = base - (dotProduct(weights, sumX) + alpha * base - sumY);
+    DataType newBase = base - (dotProduct(weights, sumX) + alpha * base - sumY);
 
-    if (fabs(base - newBase) > EPSILON)
+    if (fabsl(base - newBase) > EPSILON)
       converged = false;
 
     weights = newWeights;
@@ -80,9 +83,11 @@ bool LinearRegression::processData(const vector<vector<data>> &dotX,
 }
 
 static void precalculate(const size_t &i, const size_t &features,
-                         const vector<vector<data>> &X, const vector<data> &y,
-                         vector<data> &sumX, vector<data> &sumXY,
-                         vector<vector<data>> &dotX, const data &multiplicand) {
+                         const vector<vector<DataType>> &X,
+                         const vector<DataType> &y, vector<DataType> &sumX,
+                         vector<DataType> &sumXY,
+                         vector<vector<DataType>> &dotX,
+                         const DataType &multiplicand) {
   sumX[i] = sum(X[i], multiplicand);
   sumXY[i] = dotProduct(X[i], y, multiplicand);
 
@@ -90,27 +95,27 @@ static void precalculate(const size_t &i, const size_t &features,
     dotX[i][j] = dotProduct(X[i], X[j], multiplicand);
 }
 
-bool LinearRegression::train(const vector<vector<data>> &x,
-                             const vector<data> &y) {
+bool LinearRegression::train(const vector<vector<DataType>> &x,
+                             const vector<DataType> &y) {
   auto X = transform(x);
-  size_t features = X.size(), data_size = y.size();
+  size_t features = X.size(), DataType_size = y.size();
 
-  vector<vector<data>> dotX(features, vector<data>(features));
-  vector<data> sumX(features), sumXY(features);
+  vector<vector<DataType>> dotX(features, vector<DataType>(features));
+  vector<DataType> sumX(features), sumXY(features);
 
   runLoopConcurrently(0, features, precalculate, std::cref(features),
                       std::cref(X), std::cref(y), std::ref(sumX),
-                      std::ref(sumXY), std::ref(dotX), alpha / data_size);
+                      std::ref(sumXY), std::ref(dotX), alpha / DataType_size);
 
   for (size_t i = 0; i < features; i++)
     for (size_t j = 0; j < i; j++)
       dotX[i][j] = dotX[j][i];
 
-  data sumY = sum(y, alpha / data_size);
+  DataType sumY = sum(y, alpha / DataType_size);
 
   return processData(dotX, sumX, sumY, sumXY);
 }
 
-data LinearRegression::predict(const vector<data> &x) const {
+DataType LinearRegression::predict(const vector<DataType> &x) const {
   return dotProduct(weights, normalize(x)) + base;
 }
