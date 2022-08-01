@@ -1,10 +1,10 @@
 empty :=
 space := $(empty) $(empty)
 
-SRCDIR := ./src
-INCDIR := ./include
-OBJDIR := ./build/obj
-DEPDIR := ./build/deps
+SRCDIR := src
+INCDIR := include
+OBJDIR := build/obj
+DEPDIR := build/deps
 BINDIR := .
 
 TARGET := $(BINDIR)/$(notdir $(subst $(space),_,$(realpath .)))_
@@ -48,9 +48,11 @@ endif
 CFLAGS += -MMD -MP -I$(SRCDIR) $(foreach i,$(MY_PATHS),-I$(i))
 
 SRCS := $(wildcard $(SRCDIR)/*.cpp)
-SRCS += $(wildcard $(SRCDIR)/*.c)
+SRCS += $(wildcard $(SRCDIR)/**/*.cpp)
 
-DEPS := $(patsubst $(SRCDIR)/%,$(DEPDIR)/%.d,$(SRCS))
+SRCS += $(wildcard $(SRCDIR)/*.c)
+SRCS += $(wildcard $(SRCDIR)/**/*.c)
+
 OBJS := $(patsubst $(SRCDIR)/%,$(OBJDIR)/%.$(maketype).o,$(SRCS))
 
 .PHONY: all
@@ -82,14 +84,18 @@ $(TARGET) : $(OBJS)
 		$(LD) -o $@ $(OBJS) $(LDFLAGS)
 
 $(OBJDIR)/%.cpp.$(maketype).o : $(SRCDIR)/%.cpp
-	@mkdir -p $(OBJDIR) $(DEPDIR)
-	-@echo CXX $(maketype) $< "->" $@ && \
-		$(CXX) -c $< -o $@ -MF $(DEPDIR)/$(<F).d $(CXXFLAGS)
+	@$(eval CUR_DEP := $(patsubst $(SRCDIR)/%,$(DEPDIR)/%.d,$<))
+	@mkdir -p $(@D) $(dir $(CUR_DEP))
+	@-@echo CXX $(maketype) $< "->" $@ && \
+		$(CXX) -c $< -o $@ -MF $(CUR_DEP) $(CXXFLAGS)
 
 $(OBJDIR)/%.c.$(maketype).o : $(SRCDIR)/%.c
-	@mkdir -p $(OBJDIR) $(DEPDIR)
+	@$(eval CUR_DEP := $(patsubst $(SRCDIR)/%,$(DEPDIR)/%.d,$<))
+	@mkdir -p $(@D) $(dir $(CUR_DEP))
 	-@echo CC $(maketype) $< "->" $@ && \
-		$(CC) -c $< -o $@ -MF $(DEPDIR)/$(<F).d $(CFLAGS)
+		$(CC) -c $< -o $@ -MF $(CUR_DEP) $(CFLAGS)
+
+DEPS := $(patsubst $(SRCDIR)/%,$(DEPDIR)/%.d,$(SRCS))
 
 .PHONY: clean
 clean : 
