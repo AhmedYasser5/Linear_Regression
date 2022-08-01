@@ -1,14 +1,9 @@
 #pragma once
 
+#include "Helper_Operations/defaults.hpp"
 #include <cstddef>
-#include <vector>
 
 namespace MachineLearning {
-
-using std::size_t;
-using std::vector;
-
-typedef long double DataType;
 
 class LinearRegression {
 private:

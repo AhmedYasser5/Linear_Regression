@@ -1,9 +1,9 @@
-#include "vector_operations.hpp"
+#include "Helper_Operations/vector_operations.hpp"
 #include <cassert>
 
 using namespace MachineLearning;
 
-void MachineLearning::mul(vector<DataType> &a, DataType value) {
+void MachineLearning::multiplyByScalar(vector<DataType> &a, DataType value) {
   size_t n = a.size();
   for (size_t i = 0; i < n; i++)
     a[i] *= value;
@@ -20,7 +20,8 @@ DataType MachineLearning::dotProduct(const vector<DataType> &a,
   return result;
 }
 
-DataType MachineLearning::sum(const vector<DataType> &a, const DataType scale) {
+DataType MachineLearning::getSummation(const vector<DataType> &a,
+                                       const DataType scale) {
   size_t n = a.size();
   DataType result = 0;
   for (size_t i = 0; i < n; i++)
@@ -28,7 +29,7 @@ DataType MachineLearning::sum(const vector<DataType> &a, const DataType scale) {
   return result;
 }
 
-void MachineLearning::add(vector<DataType> &a, DataType value) {
+void MachineLearning::increaseByScalar(vector<DataType> &a, DataType value) {
   size_t n = a.size();
   for (size_t i = 0; i < n; i++)
     a[i] += value;

@@ -1,15 +1,11 @@
 #pragma once
 
+#include "Helper_Operations/defaults.hpp"
 #include <thread>
-#include <vector>
 
 namespace MachineLearning {
 
-using std::size_t;
 using std::thread;
-using std::vector;
-
-typedef long double DataType;
 
 // Run a function using multi-threading (finish - start) times
 // Similar to running a loop that calls the function multiple times, but with

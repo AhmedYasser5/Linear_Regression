@@ -1,6 +1,6 @@
-#include "linear_regression.hpp"
-#include "helper_operations.hpp"
-#include "vector_operations.hpp"
+#include "Linear_Regression/linear_regression.hpp"
+#include "Helper_Operations/concurrency_operations.hpp"
+#include "Helper_Operations/vector_operations.hpp"
 #include <cmath>
 
 using namespace MachineLearning;
@@ -17,11 +17,11 @@ static void initialize(const size_t &i, vector<vector<DataType>> &X,
 static void getStats(const size_t &i, vector<DataType> &avg,
                      vector<vector<DataType>> &X, vector<DataType> &std_dev,
                      const size_t &DataType_size) {
-  avg[i] = sum(X[i], 1.0 / DataType_size);
-  add(X[i], -avg[i]);
+  avg[i] = getSummation(X[i], 1.0 / DataType_size);
+  increaseByScalar(X[i], -avg[i]);
 
   std_dev[i] = sqrt(dotProduct(X[i], X[i], 1.0 / DataType_size));
-  mul(X[i], 1 / std_dev[i]);
+  multiplyByScalar(X[i], 1 / std_dev[i]);
 }
 
 vector<vector<DataType>>
@@ -88,7 +88,7 @@ static void precalculate(const size_t &i, const size_t &features,
                          vector<DataType> &sumXY,
                          vector<vector<DataType>> &dotX,
                          const DataType &multiplicand) {
-  sumX[i] = sum(X[i], multiplicand);
+  sumX[i] = getSummation(X[i], multiplicand);
   sumXY[i] = dotProduct(X[i], y, multiplicand);
 
   for (size_t j = i; j < features; j++)
@@ -111,7 +111,7 @@ bool LinearRegression::train(const vector<vector<DataType>> &x,
     for (size_t j = 0; j < i; j++)
       dotX[i][j] = dotX[j][i];
 
-  DataType sumY = sum(y, alpha / DataType_size);
+  DataType sumY = getSummation(y, alpha / DataType_size);
 
   return processData(dotX, sumX, sumY, sumXY);
 }
