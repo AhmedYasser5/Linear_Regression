@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Helper_Operations/defaults.hpp"
+#include "defaults.hpp"
 
 namespace MachineLearning {
 
