@@ -23,11 +23,11 @@ MY_PATHS += $(file <.my_paths)
 MY_FLAGS += $(file <.my_flags)
 
 ###### complier set-up ######
-CC = gcc
-CFLAGS = $(MY_FLAGS) -Wextra -Wno-unused-result
-CXX = g++
+CC = clang
+CFLAGS = $(MY_FLAGS) -Wextra -Wno-unused-result -Wno-unused-command-line-argument
+CXX = clang++
 CXXFLAGS = $(CFLAGS) -std=c++17
-LD = g++
+LD = clang++
 LDFLAGS = $(CXXFLAGS)
 DEBUGGER = gdb
 
