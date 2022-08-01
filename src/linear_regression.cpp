@@ -67,13 +67,13 @@ bool LinearRegression::processData(const vector<vector<DataType>> &dotX,
     for (size_t i = 0; i < features; i++) {
       newWeights[i] = weights[i] - (dotProduct(weights, dotX[i]) +
                                     base * sumX[i] - sumXY[i]);
-      if (fabsl(weights[i] - newWeights[i]) > EPSILON)
+      if (std::abs(weights[i] - newWeights[i]) > EPSILON)
         converged = false;
     }
 
     DataType newBase = base - (dotProduct(weights, sumX) + alpha * base - sumY);
 
-    if (fabsl(base - newBase) > EPSILON)
+    if (std::abs(base - newBase) > EPSILON)
       converged = false;
 
     weights = newWeights;
