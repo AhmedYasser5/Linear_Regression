@@ -5,6 +5,9 @@
 
 namespace MachineLearning {
 
+// TODO: make an interface for the DataType
+// TODO: separate the z-score normalizer from the linear regression model
+
 class LinearRegression {
 private:
   const DataType EPSILON = 1e-6;
