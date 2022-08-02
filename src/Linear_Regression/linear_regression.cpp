@@ -41,8 +41,9 @@ LinearRegression::normalize(const vector<vector<DataType>> &x) {
 
 vector<DataType> LinearRegression::normalize(const vector<DataType> &x) const {
   size_t features = x.size();
-  if (features != avg.size())
-    throw std::logic_error("The module has not been trained yet");
+  if (features != weights.size())
+    throw std::logic_error(
+        "The module has not been trained to this kind of data");
 
   vector<DataType> res;
   res.reserve(features);
