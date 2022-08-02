@@ -24,6 +24,7 @@ private:
 public:
   LinearRegression(const DataType &alpha = 0.1);
   ~LinearRegression() = default;
+  // TODO: add optional iterations
   bool train(const vector<vector<DataType>> &x, const vector<DataType> &y);
   DataType predict(const vector<DataType> &x) const;
 };
