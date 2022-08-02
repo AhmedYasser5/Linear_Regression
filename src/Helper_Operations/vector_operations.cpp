@@ -8,11 +8,9 @@ using namespace MachineLearning;
 static const size_t maxIterationsPerThread = 1e7;
 
 void MachineLearning::multiplyByScalar(vector<DataType> &vec, DataType value) {
-  size_t size = vec.size();
-  ConcurrentLoops driver(0, size, maxIterationsPerThread);
-  auto loopBody = [](size_t i, vector<DataType> &vec,
-                     const DataType &value) -> void { vec[i] *= value; };
-  driver.initiateLoopsWithoutReturns(loopBody, std::ref(vec), std::cref(value));
+  ConcurrentLoops driver(0, vec.size(), maxIterationsPerThread);
+  driver.initiateLoopsWithoutReturns(
+      [&](size_t i) -> void { vec[i] *= value; });
 }
 
 DataType MachineLearning::dotProduct(const vector<DataType> &vec1,
@@ -37,9 +35,7 @@ DataType MachineLearning::getSummation(const vector<DataType> &vec,
 }
 
 void MachineLearning::increaseByScalar(vector<DataType> &vec, DataType value) {
-  size_t size = vec.size();
-  ConcurrentLoops driver(0, size, maxIterationsPerThread);
-  auto loopBody = [](size_t i, vector<DataType> &vec,
-                     const DataType &value) -> void { vec[i] += value; };
-  driver.initiateLoopsWithoutReturns(loopBody, std::ref(vec), std::cref(value));
+  ConcurrentLoops driver(0, vec.size(), maxIterationsPerThread);
+  driver.initiateLoopsWithoutReturns(
+      [&](size_t i) -> void { vec[i] += value; });
 }
