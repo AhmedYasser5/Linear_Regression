@@ -22,8 +22,8 @@ LinearRegression::normalize(const vector<vector<DataType>> &x) {
       normalizedX[j][i] = x[i][j];
   });
 
-  avg.resize(features);
-  std_dev.resize(features);
+  avg.assign(features, 0);
+  std_dev.assign(features, 0);
 
   driver.finish = features;
   driver.maxIterationsPerThread = maxIterationsPerThreadForFeatures;
@@ -56,8 +56,7 @@ bool LinearRegression::processData(const vector<vector<DataType>> &dotX,
                                    const DataType &sumY,
                                    const vector<DataType> &sumXY) {
   size_t features = sumX.size();
-  weights.resize(features);
-  std::fill(weights.begin(), weights.end(), 0);
+  weights.assign(features, 0);
   base = 0;
 
   vector<DataType> newWeights(features);
