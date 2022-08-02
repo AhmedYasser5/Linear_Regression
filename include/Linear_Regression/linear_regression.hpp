@@ -12,7 +12,7 @@ private:
   DataType base;
   DataType alpha;
 
-  vector<vector<DataType>> transform(const vector<vector<DataType>> &x);
+  vector<vector<DataType>> normalize(const vector<vector<DataType>> &x);
   vector<DataType> normalize(const vector<DataType> &x) const;
   bool processData(const vector<vector<DataType>> &dotX,
                    const vector<DataType> &sumX, const DataType &sumY,
