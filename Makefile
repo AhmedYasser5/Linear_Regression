@@ -15,11 +15,9 @@ else
 endif
 TARGET := $(TARGET).exe
 
-MY_PATHS := $(BINDIR) $(INCDIR)
-MY_FLAGS := 
+MY_FLAGS := -I$(BINDIR) -I$(INCDIR) 
 
 ###### extra variables #######
-MY_PATHS += $(file <.my_paths)
 MY_FLAGS += $(file <.my_flags)
 
 ###### complier set-up ######
@@ -43,9 +41,10 @@ else
 	CFLAGS += -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fstack-clash-protection -fcf-protection
 	CFLAGS += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
 	CXXFLAGS += -D_GLIBCXX_ASSERTIONS
+	CFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=leak
 endif
 
-CFLAGS += -MMD -MP -I$(SRCDIR) $(foreach i,$(MY_PATHS),-I$(i))
+CFLAGS += -MMD -MP
 
 SRCS := $(wildcard $(SRCDIR)/*.cpp)
 SRCS += $(wildcard $(SRCDIR)/**/*.cpp)
@@ -72,15 +71,13 @@ run : $(TARGET)
 init :
 	-@rm -rf build $(wildcard *.exe)
 	@mkdir -p $(SRCDIR) $(INCDIR) $(OBJDIR) $(DEPDIR)
-	-@for i in $(wildcard *.cpp) $(wildcard *.c) $(wildcard *.tpp); do mv ./$$i $(SRCDIR)/$$i; done
-	-@for i in $(wildcard *.h) $(wildcard *.hpp); do mv ./$$i $(INCDIR)/$$i; done
-	@touch $(SRCDIR)/.clang_complete
-	-@$(foreach i,$(MY_PATHS),\
-			$(file >>$(SRCDIR)/.clang_complete,-I$(i))\
-			$(file >>$(SRCDIR)/.clang_complete,-I../$(i)))
+	@for i in $(wildcard *.cpp) $(wildcard *.c); do mv ./$$i $(SRCDIR)/$$i; done
+	@for i in $(wildcard *.hpp) $(wildcard *.h); do mv ./$$i $(INCDIR)/$$i; done
+	@$(file >compile_flags.txt)
+	@$(foreach i,$(CFLAGS),$(file >>compile_flags.txt,$(i)))
 
 $(TARGET) : $(OBJS)
-	-@echo LD $(maketype) "$(<D)/*.o" "->" $@ && \
+	-@echo LD $(maketype) "ALL ->" $@ && \
 		$(LD) -o $@ $(OBJS) $(LDFLAGS)
 
 $(OBJDIR)/%.cpp.$(maketype).o : $(SRCDIR)/%.cpp
@@ -103,6 +100,7 @@ clean :
 
 .PHONY: debug
 debug : $(TARGET)
-	$(DEBUGGER) $(TARGET)
+	@export ASAN_OPTIONS=detect_leaks=0; \
+		$(DEBUGGER) $(TARGET)
 
 -include $(DEPS)
